@@ -1,0 +1,9 @@
+[
+    {
+        "docker_image": "cr.yandex/crpbo4q9lbgkn85vr1rm/ydb:kungasc-latest",
+        "name": "ydb",
+        "version": "kungasc-latest",
+        "path": "/home/kungasc/ydb/myslice/ydb.kungasc-latest.tar.gz",
+        "debug_path": null
+    }
+]

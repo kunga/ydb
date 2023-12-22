@@ -1,0 +1,13 @@
+---
+apiVersion: ydb.tech/v1alpha1
+kind: NodeClaim
+metadata:
+  name: myslice
+  namespace: dev-kungasc-myslice
+spec:
+  owner: kungasc
+  description: Nodes for my YDB dev slice.
+  nodes:
+    - flavor:
+        name: cpu104_soc2_mem512G_net25G_4nvme
+        amount: 8

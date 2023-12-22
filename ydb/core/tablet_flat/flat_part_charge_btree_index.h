@@ -15,7 +15,7 @@ namespace NKikimr::NTable {
             Y_UNUSED(includeHistory);
         }
 
-        virtual bool Do(const TRowId row1, const TRowId row2,
+        bool Do(const TRowId row1, const TRowId row2,
                 const TKeyCellDefaults &keyDefaults, ui64 itemsLimit, ui64 bytesLimit) const noexcept override {
             // TODO: implement
             Y_UNUSED(row1);
@@ -26,7 +26,7 @@ namespace NKikimr::NTable {
             return true;
         }
 
-        virtual bool DoReverse(const TRowId row1, const TRowId row2, 
+        bool DoReverse(const TRowId row1, const TRowId row2, 
                 const TKeyCellDefaults &keyDefaults, ui64 itemsLimit, ui64 bytesLimit) const noexcept override {
             // TODO: implement
             Y_UNUSED(row1);
@@ -37,7 +37,7 @@ namespace NKikimr::NTable {
             return true;
         }
 
-        virtual TResult Do(const TCells key1, const TCells key2, const TRowId row1,
+        TResult Do(const TCells key1, const TCells key2, const TRowId row1,
                 const TRowId row2, const TKeyCellDefaults &keyDefaults, ui64 itemsLimit,
                 ui64 bytesLimit) const noexcept override {
             // TODO: implement
@@ -51,7 +51,7 @@ namespace NKikimr::NTable {
             return {true, false};
         }
 
-        virtual TResult DoReverse(const TCells key1, const TCells key2, const TRowId row1,
+        TResult DoReverse(const TCells key1, const TCells key2, const TRowId row1,
                 const TRowId row2, const TKeyCellDefaults &keyDefaults, ui64 itemsLimit,
                 ui64 bytesLimit) const noexcept override {
             // TODO: implement
@@ -64,6 +64,9 @@ namespace NKikimr::NTable {
             Y_UNUSED(bytesLimit);
             return {true, false};
         }
+
+    private:
+
 };
 
 }

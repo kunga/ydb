@@ -1,0 +1,313 @@
+apiVersion: ydb.tech/v1alpha1
+kind: Database
+metadata:
+  name: myslice-db1
+  namespace: dev-kungasc-myslice
+  annotations:
+    ydb.tech/node-claim: myslice.dev-kungasc-myslice
+spec:
+  additionalLabels:
+    yandex-dns-sync: 'true'
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: ydb.tech/node-claim
+            operator: In
+            values:
+            - myslice.dev-kungasc-myslice
+  caBundle: 
+    LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZHVENDQXdHZ0F3SUJBZ0lRSk1NN1pJeTJTWXhDQmdLN1djRnduakFOQmdrcWhraUc5dzBCQVEwRkFEQWYKTVIwd0d3WURWUVFERXhSWllXNWtaWGhKYm5SbGNtNWhiRkp2YjNSRFFUQWVGdzB4TXpBeU1URXhNelF4TkROYQpGdzB6TXpBeU1URXhNelV4TkRKYU1COHhIVEFiQmdOVkJBTVRGRmxoYm1SbGVFbHVkR1Z5Ym1Gc1VtOXZkRU5CCk1JSUNJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBZzhBTUlJQ0NnS0NBZ0VBZ2I0eG9RakJRN29FRms4RUhWR3kKMXBERW1QV3cwV2d3NW5YOVJNN0xMMnhRV3lVdUVxK0xmOURnaCtPNzI1YVo5K1NPMm9FczQ3REhIdDgxL2ZuZQo1TjZ4T2Z0UnJDcHk4aEd0VVIvQTNidmpuUWdqcyt6ZFh2Y085Y1R1dXp6UFRGU3RzL2laQVRac0FydWllcE14ClNHajlTMWZHd3ZZd3MveWlYV05vTkJ6NFR1MVRscDBnKzVmcC9BRGpueGM2RHFOazZ3MDFtSlJEYngrNnJsQk8KYUlIMnRRbUpYRFZvRmRyaG1CSzlxT2ZqeFdsSVlHeTgzVG5ydmRYd2k1bUtUTXRwRVJFTWd5TkxYNzVVanB2TwpOa1pnQnZFWFBRcStnOTF3QkdzV0lFMnNZbGd1WGlCbmlRZ0FKT3lSdVNkVHhjSm9HOHRaa0xEUFJpNVJvdVdZCmd4WHIxM2VkbjFUUkRHY28yaGtkdFNVQmxhakJNU3ZBcStIMGhrc2x6V0QvUitCWGtuOWRoMC9ERm54VnQ0WFUKNUpiRnlkL3NLVi9yRjRWeWdmdzlzc2gxWklXZHFrZloyUVhPWjJnSDRBRWVvTi85dkVmVVB3cVBWekwwWEVaSwpyNHMyV2pVOW1FNXRIclZzUU9aODB3bnZZSFlpMkpIYmwwaHI1Z2hzNFJJeUp3eDZMRUVuajJ0ek1GZWM0ZjdvCmRRZVNzWnBnUkptcHZwQWZSVHhoSVJqWkJyS3huTXl0ZWRBa1VQZ3VCUXdqVkNuNytFYUtpSmZwdTQySkc4TW0KKy9kSGkrUTlUYyswdFg1cEtPSXBRTWxNeE1IdzhNZlBtVWpDM0FBZDlsc21DdHV5YllvZU4ySVJkYnp6Y2hKOApsMVp1b0kzZ0g3cGNJZUVsZlZTcVNCa0NBd0VBQWFOUk1FOHdDd1lEVlIwUEJBUURBZ0dHTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZLdTV4ZitoNytaVEhUTTVJb1RSZHRRM1RpMXFNQkFHQ1NzR0FRUUIKZ2pjVkFRUURBZ0VBTUEwR0NTcUdTSWIzRFFFQkRRVUFBNElDQVFBVnB5SjFxTGpxUkxDMzRGMVVYa0MzdnhwTwpuVjZXZ3pwekErRFVOb2c0WTZSaFRuaDBCc2lyK0krRlRsMHpGQ203SnBULzNOUDlWamZFaXRNa0hlaG1IaFFLCmM3Y0lCWlNGNjJLNDc3T1R2THorOWt1Mk8vYkdUdFl2OWZBdlI0Qm16RmZ5UERvQUtPakpTZ2hEMXAvN0VsKzEKZVNqdmNVQnpMbkJVdHhPL2lZWFJObzdCMysxcW80RjVIejdyUFJMSTBVV1cvMFVBZlZDTzJmRnR5RjZDMWlFWQovcTBMZGJmM1lJYU1rZjJXZ0doblg5eUgvOE9pSWlqMnIwTFZOSFM4MTFhcHl5Y2plcDh5L05rRzRxMVo5akVpClZFWDNQNk5FTDhkV3RYUWx2bE5HTWNmRFQzbG1CK3RTMzJDUEVVd2NlL0JsZTY0NnJ1a2JFUlJ3RmZ4WG9qcGYKQzZpdW0rTHRKYzdxbks2eWduWUY0RDZtejRIKzNXYXhKZDFTMWhHUXhPYi8zV1Z3NjN0WkZuTjYyRjYvbmM1Zwo2VDQ0WWI3TkQ2eTNuVmN5Z0xwYlFzd3M2SHNqWDY1Q29TanJyUG4wWWhLeE5Cc2NGN003dExUVy81TEs5dWhrCnlqUkNrSjBZYWdwZUx4ZlYxbDFaSlphVFBadlk5K3lsSG5XSGh6bHEwRnpjcm9vU1NzcDRpNDREQjJLN08ySUQKODdsZXltWmtLVVk2UE1EYTRHa0RKeDBkRzRVWERoUkVUTWYrTmtZZ3RMSitVSXpNTnNrd1ZEY3hPNGtWTCtIaQpQajc4Ym5DNXlDdzhQNVl5bFI0NUxkeEx6TE82OHVub1hPeUZ6MWV0R1h6c3p3OGxKSTlMTnViWXhrNzdtSzhICkxwdVFLYlNiSUVSc21SK1FxUT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0KCg==
+  configuration: |
+    feature_flags:
+      enable_local_dbbtree_index: true
+    shared_cache_config:
+      memory_limit: 268435456
+    actor_system_config:
+      batch_executor: 2
+      executor:
+      - name: System
+        spin_threshold: 0
+        threads: 8
+        type: BASIC
+      - name: User
+        spin_threshold: 0
+        threads: 14
+        type: BASIC
+      - name: Batch
+        spin_threshold: 0
+        threads: 4
+        type: BASIC
+      - name: IO
+        threads: 2
+        time_per_mailbox_micro_secs: 100
+        type: IO
+      - name: IC
+        spin_threshold: 10
+        threads: 4
+        time_per_mailbox_micro_secs: 100
+        type: BASIC
+      io_executor: 3
+      scheduler:
+        progress_threshold: 10000
+        resolution: 64
+        spin_threshold: 0
+      service_executor:
+      - executor_id: 4
+        service_name: Interconnect
+      sys_executor: 0
+      user_executor: 1
+    auth_config:
+      path_to_root_ca: /etc/ssl/certs/ca-certificates.crt
+    blob_storage_config:
+      service_set:
+        availability_domains: 1
+        groups:
+        - erasure_species: block-4-2
+          group_generation: 1
+          group_id: 0
+          rings:
+          - fail_domains:
+            - vdisk_locations:
+              - node_id: 1
+                path: /dev/disk/by-partlabel/kikimr_nvme_01
+                pdisk_category: SSD
+            - vdisk_locations:
+              - node_id: 2
+                path: /dev/disk/by-partlabel/kikimr_nvme_01
+                pdisk_category: SSD
+            - vdisk_locations:
+              - node_id: 3
+                path: /dev/disk/by-partlabel/kikimr_nvme_01
+                pdisk_category: SSD
+            - vdisk_locations:
+              - node_id: 4
+                path: /dev/disk/by-partlabel/kikimr_nvme_01
+                pdisk_category: SSD
+            - vdisk_locations:
+              - node_id: 5
+                path: /dev/disk/by-partlabel/kikimr_nvme_01
+                pdisk_category: SSD
+            - vdisk_locations:
+              - node_id: 6
+                path: /dev/disk/by-partlabel/kikimr_nvme_01
+                pdisk_category: SSD
+            - vdisk_locations:
+              - node_id: 7
+                path: /dev/disk/by-partlabel/kikimr_nvme_01
+                pdisk_category: SSD
+            - vdisk_locations:
+              - node_id: 8
+                path: /dev/disk/by-partlabel/kikimr_nvme_01
+                pdisk_category: SSD
+    channel_profile_config:
+      profile:
+      - channel:
+        - erasure_species: block-4-2
+          pdisk_category: 1
+          storage_pool_kind: ssd
+        - erasure_species: block-4-2
+          pdisk_category: 1
+          storage_pool_kind: ssd
+        - erasure_species: block-4-2
+          pdisk_category: 1
+          storage_pool_kind: ssd
+        profile_id: 0
+    domains_config:
+      domain:
+      - name: Root
+        storage_pool_types:
+        - kind: ssd
+          pool_config:
+            box_id: '1'
+            erasure_species: block-4-2
+            kind: ssd
+            pdisk_filter:
+            - property:
+              - type: SSD
+            vdisk_kind: Default
+      state_storage:
+      - ring:
+          node:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          - 7
+          - 8
+          nto_select: 5
+        ssid: 1
+    grpc_config:
+      port: 2135
+    host_configs:
+    - drive:
+      - path: /dev/disk/by-partlabel/kikimr_nvme_01
+        type: SSD
+      - path: /dev/disk/by-partlabel/kikimr_nvme_02
+        type: SSD
+      - path: /dev/disk/by-partlabel/kikimr_nvme_03
+        type: SSD
+      - path: /dev/disk/by-partlabel/kikimr_nvme_04
+        type: SSD
+      host_config_id: 0
+    hosts:
+    - host: man4-2862.search.yandex.net
+      host_config_id: 0
+      location:
+        body: 1
+        data_center: MAN
+        rack: '1'
+      node_id: 1
+    - host: man4-2969.search.yandex.net
+      host_config_id: 0
+      location:
+        body: 2
+        data_center: MAN
+        rack: '2'
+      node_id: 2
+    - host: man4-3002.search.yandex.net
+      host_config_id: 0
+      location:
+        body: 3
+        data_center: MAN
+        rack: '3'
+      node_id: 3
+    - host: man4-3023.search.yandex.net
+      host_config_id: 0
+      location:
+        body: 4
+        data_center: MAN
+        rack: '4'
+      node_id: 4
+    - host: man4-3033.search.yandex.net
+      host_config_id: 0
+      location:
+        body: 5
+        data_center: MAN
+        rack: '5'
+      node_id: 5
+    - host: man4-3036.search.yandex.net
+      host_config_id: 0
+      location:
+        body: 6
+        data_center: MAN
+        rack: '6'
+      node_id: 6
+    - host: man4-3054.search.yandex.net
+      host_config_id: 0
+      location:
+        body: 7
+        data_center: MAN
+        rack: '7'
+      node_id: 7
+    - host: man4-3082.search.yandex.net
+      host_config_id: 0
+      location:
+        body: 8
+        data_center: MAN
+        rack: '8'
+      node_id: 8
+    log_config:
+      sys_log: false
+      uaclient_config:
+        grpc_max_message_size: 4194304
+        uri: '[fd53::1]:16400'
+    static_erasure: block-4-2
+  datastreams:
+    enabled: false
+  domain: Root
+  encryption:
+    enabled: false
+  image:
+    name: cr.yandex/crpbo4q9lbgkn85vr1rm/ydb:kungasc-latest
+    pullPolicy: Always
+  initContainers:
+  - command:
+    - /bin/sh
+    - -c
+    - while (! nslookup -type=aaaa $NODE_NAME.$NODE_NAMESPACE.$NODE_DOMAIN) || [ "$(nslookup
+      -type=aaaa $NODE_NAME.$NODE_NAMESPACE.$NODE_DOMAIN | fgrep Address | tail -n
+      +2 | cut -d\  -f 2)" != "$NODE_IP" ]; do sleep 3; done; sleep 10
+    env:
+    - name: NODE_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    - name: NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: NODE_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: NODE_DOMAIN
+      value: ydb-testing-man.k8s-c.yandex.net
+    image: cr.yandex/crpl7ipeu79oseqhcgn2/busybox:uclibc
+    name: init-check-dns
+    resources: {}
+  monitoring:
+    enabled: false
+  nodes: 3
+  path: /Root/myslice-db1
+  priorityClassName: system-cluster-critical
+  resources:
+    containerResources: {}
+    storageUnits:
+    - count: 1
+      unitKind: ssd
+  service:
+    datastreams:
+      tls:
+        CA:
+          key: ''
+        certificate:
+          key: ''
+        enabled: false
+        key:
+          key: ''
+    grpc:
+      externalHost: dev-kungasc-myslice.ydb-testing-man.k8s-c.yandex.net
+      ipFamilies:
+      - IPv6
+      ipFamilyPolicy: SingleStack
+      tls:
+        CA:
+          key: ''
+        certificate:
+          key: ''
+        enabled: false
+        key:
+          key: ''
+    interconnect:
+      ipFamilies:
+      - IPv6
+      ipFamilyPolicy: SingleStack
+      tls:
+        CA:
+          key: ''
+        certificate:
+          key: ''
+        enabled: false
+        key:
+          key: ''
+    status:
+      ipFamilies:
+      - IPv6
+      ipFamilyPolicy: SingleStack
+  storageClusterRef:
+    name: myslice
+    namespace: dev-kungasc-myslice
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+  - effect: NoSchedule
+    key: ydb.tech/node-claim
+    value: myslice.dev-kungasc-myslice
