@@ -2,6 +2,7 @@
 
 #include <ydb/core/tablet_flat/flat_row_celled.h>
 #include <ydb/core/tablet_flat/flat_part_charge_range.h>
+#include <ydb/core/tablet_flat/flat_page_index.h>
 #include <ydb/core/tablet_flat/flat_part_charge_create.h>
 #include <ydb/core/tablet_flat/test/libs/rows/cook.h>
 #include <ydb/core/tablet_flat/test/libs/rows/tool.h>
@@ -18,6 +19,49 @@
 namespace NKikimr {
 namespace NTable {
 
+class TPartBtreeIndexIt2 {
+    using TCells = NPage::TCells;
+    using TBtreeIndexNode = NPage::TBtreeIndexNode;
+    using TGroupId = NPage::TGroupId;
+    using TRecIdx = NPage::TRecIdx;
+    using TChild = TBtreeIndexNode::TChild;
+    using TBtreeIndexMeta = NPage::TBtreeIndexMeta;
+
+public:
+    TPartBtreeIndexIt2(const TPart* part, IPages* env, TGroupId groupId)
+        : Part(part)
+        , Env(env)
+        , GroupId(groupId)
+        , GroupInfo(part->Scheme->GetLayout(groupId))
+        , Meta(groupId.IsHistoric() ? part->IndexPages.BTreeHistoric[groupId.Index] : part->IndexPages.BTreeGroups[groupId.Index])
+    {
+    }
+    
+    EReady Seek(TRowId rowId) {
+        TPageId pageId = Meta.PageId;
+
+        for (ui32 level = 0; level < Meta.LevelCount; level++) {
+            auto page = Env->TryGetPage(Part, pageId);
+            if (!page) {
+                return EReady::Page;
+            }
+
+            TBtreeIndexNode node(*page);
+            auto pos = node.Seek(rowId);
+            pageId = node.GetShortChild(pos).PageId;
+        }
+
+        return EReady::Data;
+    }
+
+private:
+    const TPart* const Part;
+    IPages* const Env;
+    const TGroupId GroupId;
+    const TPartScheme::TGroupInfo& GroupInfo;
+    const TBtreeIndexMeta Meta;
+};
+
 namespace {
     using namespace NTest;
 
@@ -32,6 +76,7 @@ namespace {
         for (size_t group : xrange(groups)) {
             conf.Group(group).PageSize = 1024;
             conf.Group(group).BTreeIndexNodeTargetSize = 1024;
+            // conf.Group(group).BTreeIndexNodeKeysMin = Max<ui32>();
         }
 
         conf.WriteBTreeIndex = writeBTreeIndex;
@@ -113,19 +158,93 @@ namespace {
     };
 }
 
+BENCHMARK_DEFINE_F(TPartIndexSeekFixture, GetIndexPage)(benchmark::State& state) {
+    const bool useBTree = state.range(0);
+
+    if (useBTree) {
+        auto pageId = Eggs.Lone()->IndexPages.BTreeGroups[GroupId.Index].PageId;
+        auto page = Env.TryGetPage(Eggs.Lone().Get(), pageId, {});
+        {
+            // skip root
+            NPage::TBtreeIndexNode node(*page);
+            pageId = node.GetShortChild(0).PageId;
+        }
+        for (auto _ : state) {
+            Env.TryGetPage(Eggs.Lone().Get(), pageId, {});
+        }
+    } else {
+        auto pageId = Eggs.Lone()->IndexPages.Groups[GroupId.Index];
+        for (auto _ : state) {
+            Env.TryGetPage(Eggs.Lone().Get(), pageId, {});
+        }
+    }
+}
+
+BENCHMARK_DEFINE_F(TPartIndexSeekFixture, ParseIndexPage)(benchmark::State& state) {
+    const bool useBTree = state.range(0);
+
+    if (useBTree) {
+        auto pageId = Eggs.Lone()->IndexPages.BTreeGroups[GroupId.Index].PageId;
+        auto page = Env.TryGetPage(Eggs.Lone().Get(), pageId, {});
+        {
+            // skip root
+            NPage::TBtreeIndexNode node(*page);
+            page = Env.TryGetPage(Eggs.Lone().Get(), node.GetShortChild(0).PageId, {});
+        }
+        
+        for (auto _ : state) {
+            NPage::TBtreeIndexNode node(*page);
+            node.GetKeysCount();
+        }
+    } else {
+        auto pageId = Eggs.Lone()->IndexPages.Groups[GroupId.Index];
+        auto page = Env.TryGetPage(Eggs.Lone().Get(), pageId, {});
+        for (auto _ : state) {
+            NPage::TIndex index(*page);
+            index.GetEndRowId();
+        }
+    }
+}
+
+BENCHMARK_DEFINE_F(TPartIndexSeekFixture, NodeSeek)(benchmark::State& state) {
+    const bool useBTree = state.range(0);
+
+    if (useBTree) {
+        auto pageId = Eggs.Lone()->IndexPages.BTreeGroups[GroupId.Index].PageId;
+        auto page = Env.TryGetPage(Eggs.Lone().Get(), pageId, {});
+        NPage::TBtreeIndexNode node(*page);
+        // skip root
+        page = Env.TryGetPage(Eggs.Lone().Get(), node.GetShortChild(0).PageId, {});
+        auto end = node.GetShortChild(0).RowCount;
+        node = NPage::TBtreeIndexNode(*page);
+        Cerr << "node " << node.GetKeysCount() << Endl;
+        for (auto _ : state) {
+            node.Seek(RandomNumber<ui32>(end));
+        }
+    } else {
+        auto pageId = Eggs.Lone()->IndexPages.Groups[GroupId.Index];
+        auto page = Env.TryGetPage(Eggs.Lone().Get(), pageId, {});
+        NPage::TIndex index(*page);
+        Cerr << "index " << index->Count << Endl;
+        for (auto _ : state) {
+            index.LookupRow(RandomNumber<ui32>(Eggs.Lone()->Stat.Rows));
+        }
+    }
+}
+
 BENCHMARK_DEFINE_F(TPartIndexSeekFixture, SeekRowId)(benchmark::State& state) {
     const bool useBTree = state.range(0);
 
-    for (auto _ : state) {
-        THolder<IIndexIter> iter;
-
-        if (useBTree) {
-            iter = MakeHolder<TPartBtreeIndexIt>(Eggs.Lone().Get(), &Env, GroupId);
-        } else {
-            iter = MakeHolder<TPartIndexIt>(Eggs.Lone().Get(), &Env, GroupId);
+    if (useBTree) {
+        for (auto _ : state) {
+            TPartBtreeIndexIt2 iter(Eggs.Lone().Get(), &Env, GroupId);
+            iter.Seek(RandomNumber<ui32>(Eggs.Lone()->Stat.Rows));
         }
-
-        iter->Seek(RandomNumber<ui32>(Eggs.Lone()->Stat.Rows));    
+    } else {
+        for (auto _ : state) {
+            TPartIndexIt iter(Eggs.Lone().Get(), &Env, GroupId);
+            iter.Seek(RandomNumber<ui32>(Eggs.Lone()->Stat.Rows));
+        }
     }
 }
 
@@ -211,6 +330,24 @@ BENCHMARK_DEFINE_F(TPartIndexIteratorFixture, DoReads)(benchmark::State& state) 
         }
     }
 }
+
+BENCHMARK_REGISTER_F(TPartIndexSeekFixture, GetIndexPage)
+    ->ArgsProduct({
+        /* b-tree */ {0, 1},
+        /* groups: */ {0, 1}})
+    ->Unit(benchmark::kMicrosecond);
+
+BENCHMARK_REGISTER_F(TPartIndexSeekFixture, ParseIndexPage)
+    ->ArgsProduct({
+        /* b-tree */ {0, 1},
+        /* groups: */ {0, 1}})
+    ->Unit(benchmark::kMicrosecond);
+
+BENCHMARK_REGISTER_F(TPartIndexSeekFixture, NodeSeek)
+    ->ArgsProduct({
+        /* b-tree */ {0, 1},
+        /* groups: */ {0, 1}})
+    ->Unit(benchmark::kMicrosecond);
 
 BENCHMARK_REGISTER_F(TPartIndexSeekFixture, SeekRowId)
     ->ArgsProduct({
