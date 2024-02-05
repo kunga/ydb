@@ -180,6 +180,27 @@ BENCHMARK_DEFINE_F(TPartIndexSeekFixture, GetIndexPage)(benchmark::State& state)
     }
 }
 
+BENCHMARK_DEFINE_F(TPartIndexSeekFixture, PassIndexPage)(benchmark::State& state) {
+    const bool useBTree = state.range(0);
+
+    if (useBTree) {
+        auto pageId = Eggs.Lone()->IndexPages.Groups[GroupId.Index];
+        auto page = Env.TryGetPage(Eggs.Lone().Get(), pageId, {});
+        std::shared_ptr<TString> ptr = std::make_shared<TString>(page->ToString());
+        for (auto _ : state) {
+            std::shared_ptr<TString> copy = ptr;
+            Y_UNUSED(copy);
+        }
+    } else {
+        auto pageId = Eggs.Lone()->IndexPages.Groups[GroupId.Index];
+        auto page = Env.TryGetPage(Eggs.Lone().Get(), pageId, {});
+        for (auto _ : state) {
+            TSharedData copy = *page;
+            Y_UNUSED(copy);
+        }
+    }
+}
+
 BENCHMARK_DEFINE_F(TPartIndexSeekFixture, ParseIndexPage)(benchmark::State& state) {
     const bool useBTree = state.range(0);
 
@@ -332,6 +353,12 @@ BENCHMARK_DEFINE_F(TPartIndexIteratorFixture, DoReads)(benchmark::State& state) 
 }
 
 BENCHMARK_REGISTER_F(TPartIndexSeekFixture, GetIndexPage)
+    ->ArgsProduct({
+        /* b-tree */ {0, 1},
+        /* groups: */ {0, 1}})
+    ->Unit(benchmark::kMicrosecond);
+
+BENCHMARK_REGISTER_F(TPartIndexSeekFixture, PassIndexPage)
     ->ArgsProduct({
         /* b-tree */ {0, 1},
         /* groups: */ {0, 1}})
