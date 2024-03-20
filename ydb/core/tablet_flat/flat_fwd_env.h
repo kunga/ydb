@@ -115,7 +115,7 @@ namespace NFwd {
                 return TryGetIndexPage(slot, ref, type);
             }
                 
-            return Handle(Queues.at(slot), ref).Page;
+            return Handle(Queues.at(slot), ref, slot).Page;
         }
 
         TResult Locate(const TMemTable *memTable, ui64 ref, ui32 tag) noexcept override
@@ -131,7 +131,7 @@ namespace NFwd {
 
             ui32 room = part->GroupsCount + (lob == ELargeObj::Extern ? 1 : 0);
 
-            return Handle(GetQueue(part, room), ref);
+            return Handle(GetQueue(part, room), ref, room);
         }
 
         void DoSave(TIntrusiveConstPtr<IPageCollection> pageCollection, ui64 cookie, TArrayRef<NPageCollection::TLoadedPage> pages)
@@ -280,14 +280,14 @@ namespace NFwd {
             }            
         }
 
-        TResult Handle(TPageLoadingQueue &q, TPageId ref) noexcept
+        TResult Handle(TPageLoadingQueue &q, TPageId ref, TSlot slot) noexcept
         {
             auto got = q->Handle(&q, ref, Conf.AheadLo);
 
             if ((q.Grow = got.Grow) || bool(q.Fetch)) {
                 Queue.PushBack(&q);
             } else if (got.Need && got.Page == nullptr) {
-                Y_ABORT("Cache line head don't want to do fetch but should");
+                Y_ABORT("Cache line head don't want to do fetch but should %s", std::to_string(slot).c_str());
             }
 
             return { got.Need, got.Page };
