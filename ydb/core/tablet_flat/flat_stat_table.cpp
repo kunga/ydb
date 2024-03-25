@@ -7,6 +7,11 @@ namespace NKikimr {
 namespace NTable {
 
 bool BuildStats(const TSubset& subset, TStats& stats, ui64 rowCountResolution, ui64 dataSizeResolution, IPages* env) {
+    TStringBuilder log;
+    return BuildStats(subset, stats, rowCountResolution, dataSizeResolution, env, log);
+}
+
+bool BuildStats(const TSubset& subset, TStats& stats, ui64 rowCountResolution, ui64 dataSizeResolution, IPages* env, TStringBuilder& log) {
     stats.Clear();
 
     TDataStats iteratorStats = { };
@@ -20,12 +25,15 @@ bool BuildStats(const TSubset& subset, TStats& stats, ui64 rowCountResolution, u
     ui64 iterRowCountResolution = rowCountResolution / Max<ui64>(1, epochs.size()) / 4;
     ui64 iterDataSizeResolution = dataSizeResolution / Max<ui64>(1, epochs.size()) / 4;
 
+    log << "Resolution: " << rowCountResolution << " rows, " << dataSizeResolution << " bytes" << Endl;
+    log << "Iter resolution: " << iterRowCountResolution << " rows, " << iterDataSizeResolution << " bytes (" << epochs.size() << " epochs)" << Endl;
+
     // Make index iterators for all parts
     bool started = true;
     for (const auto& part : subset.Flatten) {
         stats.IndexSize.Add(part->IndexesRawSize, part->Label.Channel());
         TAutoPtr<TStatsScreenedPartIterator> iter = new TStatsScreenedPartIterator(part, env, subset.Scheme->Keys, part->Small, part->Large, 
-            iterRowCountResolution, iterDataSizeResolution);
+            iterRowCountResolution, iterDataSizeResolution, log);
         auto ready = iter->Start();
         if (ready == EReady::Page) {
             started = false;
@@ -69,6 +77,9 @@ bool BuildStats(const TSubset& subset, TStats& stats, ui64 rowCountResolution, u
 
     stats.RowCount = iteratorStats.RowCount;
     stats.DataSize = std::move(iteratorStats.DataSize);
+
+    log << "Total: " << stats.RowCount << " rows, " << stats.DataSize.Size << " bytes" << Endl;
+    log << "Histograms: " << stats.RowCountHistogram.size() << " rows, " << stats.DataSizeHistogram.size() << " bytes" << Endl;
 
     return true;
 }

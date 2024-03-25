@@ -38,7 +38,7 @@ class TStatsPartGroupBtreeIndexIterator : public IStatsPartGroupIterator {
 
 public:
     TStatsPartGroupBtreeIndexIterator(const TPart* part, IPages* env, TGroupId groupId,
-            ui64 rowCountResolution, ui64 dataSizeResolution, const TVector<TRowId>& splitPoints)
+            ui64 rowCountResolution, ui64 dataSizeResolution, const TVector<TRowId>& splitPoints, TStringBuilder& log)
         : Part(part)
         , Env(env)
         , GroupId(groupId)
@@ -48,7 +48,8 @@ public:
         , NodeIndex(0)
         , RowCountResolution(rowCountResolution)
         , DataSizeResolution(dataSizeResolution)
-        , SplitPoints(splitPoints) // make copy for Start
+        , SplitPoints(splitPoints) // make a copy for Start
+        , Log(log)
     {
         Y_DEBUG_ABORT_UNLESS(std::is_sorted(SplitPoints.begin(), SplitPoints.end()));
     }
@@ -60,9 +61,18 @@ public:
         TVector<TNodeState> nextNodes;
         Nodes.emplace_back(Meta.PageId, 0, GetEndRowId(), EmptyKey, 0, Meta.DataSize);
 
+        Log << "- " << Meta.ToString() << Endl;
+
         for (ui32 height = 0; height < Meta.LevelCount; height++) {
             bool hasChanges = false;
             size_t splitPointIndex = 0;
+
+            Log << "  - " << "Level ";
+            if (Nodes) {
+                Log << height << ": " << Nodes[0].EndDataSize - Nodes[0].BeginDataSize << " bytes, " << Nodes[0].EndRowId - Nodes[0].BeginRowId << Endl;
+            } else {
+                Log << "skipped" << Endl;
+            }
 
             for (auto &nodeState : Nodes) {
                 while (splitPointIndex < SplitPoints.size() && SplitPoints[splitPointIndex] < nodeState.BeginRowId) {
@@ -178,6 +188,7 @@ private:
     ui64 RowCountResolution;
     ui64 DataSizeResolution;
     TVector<TRowId> SplitPoints;
+    TStringBuilder& Log;
 };
 
 }

@@ -189,6 +189,7 @@ private:
 };
 
 bool BuildStats(const TSubset& subset, TStats& stats, ui64 rowCountResolution, ui64 dataSizeResolution, IPages* env);
+bool BuildStats(const TSubset& subset, TStats& stats, ui64 rowCountResolution, ui64 dataSizeResolution, IPages* env, TStringBuilder& log);
 void GetPartOwners(const TSubset& subset, THashSet<ui64>& partOwners);
 
 }}

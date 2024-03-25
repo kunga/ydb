@@ -58,6 +58,10 @@ public:
         return Pending;
     }
 
+    ui64 GetLoaded() {
+        return Loaded;
+    }
+
     TVector<TAutoPtr<NPageCollection::TFetch>> GetFetches()
     {
         TVector<TAutoPtr<NPageCollection::TFetch>> result;
@@ -77,6 +81,7 @@ public:
     {
         if (auto* partPages = Parts.FindPtr((TPart*)cookie)) {
             if (partPages->NeedPages.erase(pageId)) {
+                Loaded += data.size();
                 partPages->Pages.emplace(pageId, std::move(data));
                 Pending--;
             }
@@ -85,6 +90,7 @@ public:
 
 private:
     ui64 Pending = 0;
+    ui64 Loaded = 0;
     THashMap<const TPart*, TPartPages> Parts;
 };
 
@@ -174,7 +180,12 @@ private:
 
         Subset->ColdParts.clear(); // stats won't include cold parts, if any
 
-        if (BuildStats(*Subset, ev->Stats, RowCountResolution, DataSizeResolution, &Env)) {
+        TStringBuilder log;
+        log << "Build stats for at datashard " << TabletId << " for table " << TableId << Endl;
+        if (BuildStats(*Subset, ev->Stats, RowCountResolution, DataSizeResolution, &Env, log)) {
+            log << "Touched " << Env.GetLoaded() << " out of " << IndexSize << " (" << 100.0 * Env.GetLoaded() / IndexSize << ")" << Endl;
+            LOG_ERROR_S(ctx, NKikimrServices::TX_DATASHARD, log);
+
             Y_DEBUG_ABORT_UNLESS(IndexSize == ev->Stats.IndexSize.Size);
 
             ctx.Send(ReplyTo, ev.Release());

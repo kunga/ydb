@@ -159,6 +159,11 @@ Y_UNIT_TEST_SUITE(DataShardStats) {
 
         TServer::TPtr server = new TServer(serverSettings);
         auto& runtime = *server->GetRuntime();
+
+        auto &appData = runtime.GetAppData();
+        appData.FeatureFlags.SetEnableLocalDBBtreeIndex(true);
+        appData.FeatureFlags.SetEnableLocalDBFlatIndex(true);
+
         auto sender = runtime.AllocateEdgeActor();
         bool bTreeIndex = runtime.GetAppData().FeatureFlags.GetEnableLocalDBBtreeIndex();
 

@@ -41,6 +41,6 @@ struct IStatsPartGroupIterator {
 };
 
 THolder<IStatsPartGroupIterator> CreateStatsPartGroupIterator(const TPart* part, IPages* env, NPage::TGroupId groupId, 
-    ui64 rowCountResolution, ui64 dataSizeResolution, const TVector<TRowId>& splitPoints);
+    ui64 rowCountResolution, ui64 dataSizeResolution, const TVector<TRowId>& splitPoints, TStringBuilder& log);
     
 }

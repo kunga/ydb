@@ -22,7 +22,7 @@ class TStatsScreenedPartIterator {
 public:
     TStatsScreenedPartIterator(TPartView partView, IPages* env, TIntrusiveConstPtr<TKeyCellDefaults> keyDefaults, 
             TIntrusiveConstPtr<TFrames> small, TIntrusiveConstPtr<TFrames> large,
-            ui64 rowCountResolution, ui64 dataSizeResolution)
+            ui64 rowCountResolution, ui64 dataSizeResolution, TStringBuilder& log)
         : Part(std::move(partView.Part))
         , KeyDefaults(std::move(keyDefaults))
         , Groups(::Reserve(Part->GroupsCount))
@@ -31,6 +31,7 @@ public:
         , Small(std::move(small))
         , Large(std::move(large))
         , CurrentHole(TScreen::Iter(Screen, CurrentHoleIdx, 0, 1))
+        , Log(log)
     {
         TVector<TRowId> splitPoints;
         if (Screen) {
@@ -59,7 +60,7 @@ public:
                 (historic ? HistoricGroups : Groups).push_back(
                     CreateStatsPartGroupIterator(Part.Get(), env, TGroupId(groupIndex, historic), 
                         groupRowCountResolution, groupDataSizeResolution, 
-                        historic || groupRowCountResolution == 0 ? TVector<TRowId>() : splitPoints));
+                        historic || groupRowCountResolution == 0 ? TVector<TRowId>() : splitPoints, Log));
             }
         }
     }
@@ -264,6 +265,7 @@ private:
     TIntrusiveConstPtr<TFrames> Large;    /* Inverted index for large blobs   */
     size_t CurrentHoleIdx = 0;
     TScreen::THole CurrentHole;
+    TStringBuilder& Log;
     ui32 PrevSmallPage = 0;
     ui32 PrevLargePage = 0;
 };
