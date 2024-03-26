@@ -67,12 +67,12 @@ public:
             bool hasChanges = false;
             size_t splitPointIndex = 0;
 
-            Log << "  - " << "Level ";
-            if (Nodes) {
-                Log << height << ": " << Nodes[0].EndDataSize - Nodes[0].BeginDataSize << " bytes, " << Nodes[0].EndRowId - Nodes[0].BeginRowId << Endl;
-            } else {
-                Log << "skipped" << Endl;
+            Log << "  - " << "Level " << height << ", " << Nodes.size() << " nodes: ";
+            for (ui32 i = 0; i < Min<ui32>(20, Nodes.size()); i++) {
+                Log << "{" << Nodes[0].EndDataSize - Nodes[0].BeginDataSize << " bytes, " 
+                    << Nodes[0].EndRowId - Nodes[0].BeginRowId << " rows}, "; 
             }
+            Log << Endl;
 
             for (auto &nodeState : Nodes) {
                 while (splitPointIndex < SplitPoints.size() && SplitPoints[splitPointIndex] < nodeState.BeginRowId) {
@@ -114,6 +114,13 @@ public:
                 break; // don't go deeper
             }
         }
+
+        Log << "  - " << "Level " << "x" << ", " << Nodes.size() << " nodes: ";
+        for (ui32 i = 0; i < Min<ui32>(20, Nodes.size()); i++) {
+            Log << "{" << Nodes[0].EndDataSize - Nodes[0].BeginDataSize << " bytes, " 
+                << Nodes[0].EndRowId - Nodes[0].BeginRowId << " rows}, "; 
+        }
+        Log << Endl;
 
         if (!ready) {
             Nodes.clear(); // some invalid subset
