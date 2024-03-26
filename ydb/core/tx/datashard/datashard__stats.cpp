@@ -98,7 +98,8 @@ class TAsyncTableStatsBuilder : public TActorBootstrapped<TAsyncTableStatsBuilde
 public:
     TAsyncTableStatsBuilder(TActorId replyTo, ui64 tabletId, ui64 tableId, ui64 indexSize, const TAutoPtr<TSubset> subset,
                             ui64 memRowCount, ui64 memDataSize,
-                            ui64 rowCountResolution, ui64 dataSizeResolution, ui64 searchHeight, TInstant statsUpdateTime)
+                            ui64 rowCountResolution, ui64 dataSizeResolution, ui32 resolutionMultiplier,
+                            ui64 searchHeight, TInstant statsUpdateTime)
         : ReplyTo(replyTo)
         , TabletId(tabletId)
         , TableId(tableId)
@@ -109,6 +110,7 @@ public:
         , MemDataSize(memDataSize)
         , RowCountResolution(rowCountResolution)
         , DataSizeResolution(dataSizeResolution)
+        , ResolutionMultiplier(resolutionMultiplier)
         , SearchHeight(searchHeight)
     {}
 
@@ -182,7 +184,7 @@ private:
 
         TStringBuilder log;
         log << "Build stats for at datashard " << TabletId << " for table " << TableId << Endl;
-        if (BuildStats(*Subset, ev->Stats, RowCountResolution, DataSizeResolution, &Env, log)) {
+        if (BuildStats(*Subset, ev->Stats, RowCountResolution, DataSizeResolution, ResolutionMultiplier, &Env, log)) {
             if (true || ev->Stats.DataSize.Size > 100*1024*1024) {
                 log << "Touched " << Env.GetLoaded() << " out of " << IndexSize << " (" << 100.0 * Env.GetLoaded() / Max(ui64(1), IndexSize) << " percents)" << Endl;
                 LOG_ERROR_S(ctx, NKikimrServices::TX_DATASHARD, log);
@@ -250,6 +252,7 @@ private:
     ui64 MemDataSize;
     ui64 RowCountResolution;
     ui64 DataSizeResolution;
+    ui32 ResolutionMultiplier;
     ui64 SearchHeight;
 };
 
@@ -496,6 +499,7 @@ public:
             ui64 tableId = ti.first;
             ui64 rowCountResolution = gDbStatsRowCountResolution;
             ui64 dataSizeResolution = gDbStatsDataSizeResolution;
+            ui64 resolutionMultiplier = gDbStatsResolutionMultiplier;
 
             const ui64 MaxBuckets = 500;
 
@@ -548,6 +552,7 @@ public:
                 memDataSize,
                 rowCountResolution,
                 dataSizeResolution,
+                resolutionMultiplier,
                 searchHeight,
                 AppData(ctx)->TimeProvider->Now());
 
