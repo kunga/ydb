@@ -185,7 +185,7 @@ private:
         TStringBuilder log;
         log << "Build stats for at datashard " << TabletId << " for table " << TableId << Endl;
         if (BuildStats(*Subset, ev->Stats, RowCountResolution, DataSizeResolution, ResolutionMultiplier, &Env, log)) {
-            if (true || ev->Stats.DataSize.Size > 100*1024*1024) {
+            if (ev->Stats.DataSize.Size > 100*1024*1024) {
                 log << "Touched " << Env.GetLoaded() << " out of " << IndexSize << " (" << 100.0 * Env.GetLoaded() / Max(ui64(1), IndexSize) << " percents)" << Endl;
                 LOG_ERROR_S(ctx, NKikimrServices::TX_DATASHARD, log);
             }
