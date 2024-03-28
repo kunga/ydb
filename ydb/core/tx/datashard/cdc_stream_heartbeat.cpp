@@ -79,8 +79,8 @@ public:
 }; // TTxCdcStreamEmitHeartbeats
 
 void TDataShard::EmitHeartbeats() {
-    LOG_D("Emit heartbeats"
-        << ": at tablet# " << TabletID());
+    // LOG_D("Emit heartbeats"
+    //     << ": at tablet# " << TabletID());
 
     if (State != TShardState::Ready) {
         return;

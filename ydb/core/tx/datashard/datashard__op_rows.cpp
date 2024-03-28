@@ -22,8 +22,8 @@ public:
     }
 
     bool Execute(TTransactionContext& txc, const TActorContext& ctx) override {
-        LOG_INFO_S(ctx, NKikimrServices::TX_DATASHARD, "TTxDirectBase(" << GetTxType() << ") Execute"
-            << ": at tablet# " << Self->TabletID());
+        // LOG_INFO_S(ctx, NKikimrServices::TX_DATASHARD, "TTxDirectBase(" << GetTxType() << ") Execute"
+        //     << ": at tablet# " << Self->TabletID());
 
         if (Self->IsFollower()) {
             return true; // TODO: report error
