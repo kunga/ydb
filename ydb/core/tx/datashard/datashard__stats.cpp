@@ -113,6 +113,8 @@ public:
     }
 
     void Bootstrap(const TActorContext& ctx) {
+        LOG_DEBUG_S(ctx, NKikimrServices::TX_DATASHARD, "Stats build at datashard " << TabletId << ", for tableId " << TableId << 
+            " SCHEDULE");
         SubmitWaitResourcesTask(ctx);
         Become(&TThis::StateWaitResource);
     }
@@ -176,7 +178,11 @@ private:
 
         Subset->ColdParts.clear(); // stats won't include cold parts, if any
 
+        LOG_DEBUG_S(ctx, NKikimrServices::TX_DATASHARD, "Stats build at datashard " << TabletId << ", for tableId " << TableId << 
+            " START");
         if (BuildStats(*Subset, ev->Stats, RowCountResolution, DataSizeResolution, ResolutionMultiplier, &Env)) {
+            LOG_DEBUG_S(ctx, NKikimrServices::TX_DATASHARD, "Stats build at datashard " << TabletId << ", for tableId " << TableId << 
+                " END " << ev->Stats.DataSize.Size << " bytes");
             Y_DEBUG_ABORT_UNLESS(IndexSize == ev->Stats.IndexSize.Size);
 
             ctx.Send(ReplyTo, ev.Release());
@@ -185,6 +191,8 @@ private:
 
             return Die(ctx);
         }
+        LOG_DEBUG_S(ctx, NKikimrServices::TX_DATASHARD, "Stats build at datashard " << TabletId << ", for tableId " << TableId << 
+            " RETRY");
 
         // page fault has happened, request needed pages
         // graceful continuation is not supported, BuildStats will be restarted
@@ -217,8 +225,8 @@ private:
         }
 
         if (Env.GetPending()) {
-            LOG_DEBUG_S(ctx, NKikimrServices::TX_DATASHARD, "Stats build at datashard " << TabletId << ", for tableId " << TableId << 
-                " needs to load " << Env.GetPending() << " more pages");
+            // LOG_DEBUG_S(ctx, NKikimrServices::TX_DATASHARD, "Stats build at datashard " << TabletId << ", for tableId " << TableId << 
+            //     " needs to load " << Env.GetPending() << " more pages");
         } else {
             LOG_DEBUG_S(ctx, NKikimrServices::TX_DATASHARD, "Stats build at datashard " << TabletId << ", for tableId " << TableId << 
                 " got all needed pages, continue");
