@@ -6,6 +6,8 @@ namespace NKikimr::NPQ::NBalancing {
 
 using namespace NTabletFlatExecutor;
 
+using TPartitionInfo = TPersQueueReadBalancer::TPartitionInfo;
+
 struct TSession;
 struct TConsumer;
 class TBalancer;
@@ -192,7 +194,6 @@ struct TConsumer {
 
     std::unordered_map<ui32, TPartition> Partitions;
 
-    size_t ActiveFamilyCount;
     bool BalanceScheduled;
 
     TConsumer(TBalancer& balancer, const TString& consumerName);

@@ -60,6 +60,8 @@ public:
     void Run() override {
         try {
             RunImpl();
+        } catch (const TDtorException&) {
+            return; // coroutine terminated
         } catch (const TExTableStatsError& ex) {
             Send(ReplyTo, new TDataShard::TEvPrivate::TEvTableStatsError(TableId, ex.Code, ex.Message));
         } catch (...) {
@@ -426,9 +428,7 @@ public:
     void CheckIdleMemCompaction(const TUserTable& table, TTransactionContext& txc, const TActorContext& ctx) {
         // Note: we only care about changes in the main table
         auto lastTableChange = txc.DB.Head(table.LocalTid);
-        if (table.LastTableChange.Serial != lastTableChange.Serial ||
-            table.LastTableChange.Epoch != lastTableChange.Epoch)
-        {
+        if (table.LastTableChange != lastTableChange) {
             table.LastTableChange = lastTableChange;
             table.LastTableChangeTimestamp = ctx.Monotonic();
             return;
